@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raitha Setu - Phone Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00C853, #FFD600);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+        h2 {
+            color: #111;
+            margin-bottom: 5px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus {
+            border-color: #00C853;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #FF6D00;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #E65100;
+        }
+        .hidden {
+            display: none;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .error { color: #D32F2F; }
+        .success { color: #388E3C; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>Farmer Login</h2>
+        <p>Login securely using your Mobile Number</p>
+
+        <!-- Phone Section -->
+        <div id="phone-section">
+            <input type="tel" id="mobile-number" placeholder="+91 9876543210" value="+91" />
+            <button id="send-otp-btn">Send OTP</button>
+        </div>
+
+        <!-- OTP Section -->
+        <div id="otp-section" class="hidden">
+            <input type="number" id="otp-input" placeholder="Enter 6-digit OTP" />
+            <button id="verify-otp-btn">Verify OTP</button>
+        </div>
+
+        <!-- Messages -->
+        <div id="message"></div>
+
+        <!-- Firebase Invisible Recaptcha container -->
+        <div id="recaptcha-container"></div>
+    </div>
+
+    <!-- Firebase SDKs (v9 Compat for simplicity in simple HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // 1. Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwCprmCd-JLqZuMFAuhzFds2COg3lzJnY",
+            authDomain: "kissanconnect-12cfd.firebaseapp.com",
+            projectId: "kissanconnect-12cfd",
+            storageBucket: "kissanconnect-12cfd.firebasestorage.app",
+            messagingSenderId: "1007980212705",
+            appId: "1:1007980212705:web:be6122b39c406febf422a0"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 2. DOM Elements
+        const phoneSection = document.getElementById('phone-section');
+        const otpSection = document.getElementById('otp-section');
+        const mobileInput = document.getElementById('mobile-number');
+        const sendOtpBtn = document.getElementById('send-otp-btn');
+        const otpInput = document.getElementById('otp-input');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const messageBox = document.getElementById('message');
+
+        let confirmationResultObj = null;
+
+        // 3. Setup Invisible Recaptcha
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('send-otp-btn', {
+            'size': 'invisible',
+            'callback': (response) => {
+                // reCAPTCHA solved automatically.
+            }
+        });
+
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = type;
+        }
+
+        // 4. Send OTP Logic
+        sendOtpBtn.addEventListener('click', () => {
+            const phoneNumber = mobileInput.value.trim();
+            
+            // Check if valid Indian format logic roughly (min 13 chars with +91)
+            if (phoneNumber.length < 10) {
+                showMessage("Invalid mobile number format. Include +91.", "error");
+                return;
+            }
+
+            showMessage("Sending OTP...", "");
+
+            auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+                .then((confirmationResult) => {
+                    // SMS sent successfully
+                    confirmationResultObj = confirmationResult;
+                    showMessage("OTP Sent Successfully! Please check your SMS.", "success");
+                    
+                    // Switch UI
+                    phoneSection.classList.add('hidden');
+                    otpSection.classList.remove('hidden');
+                })
+                .catch((error) => {
+                    console.error(error);
+                    showMessage("Error: " + error.message, "error");
+                    // Reset recaptcha so user can try again
+                    if(window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+                });
+        });
+
+        // 5. Verify OTP Logic
+        verifyOtpBtn.addEventListener('click', () => {
+            const code = otpInput.value.trim();
+            if (code.length !== 6) {
+                showMessage("Please enter a valid 6-digit OTP.", "error");
+                return;
+            }
+
+            showMessage("Verifying...", "");
+
+            confirmationResultObj.confirm(code)
+                .then((result) => {
+                    // User signed in successfully
+                    const user = result.user;
+                    showMessage("Login Successful! Welcome, Farmer " + user.phoneNumber, "success");
+                    
+                    // Hide OTP box, show logged in status
+                    otpSection.classList.add('hidden');
+                })
+                .catch((error) => {
+                    console.error(error);
+                    showMessage("Wrong OTP entered. Please try again.", "error");
+                });
+        });
+    </script>
+</body>
+</html>

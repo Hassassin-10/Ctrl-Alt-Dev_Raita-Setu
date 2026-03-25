@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic auth check for all documents
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Specific rules for farmers (already covered but good practice)
+    match /farmers/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
