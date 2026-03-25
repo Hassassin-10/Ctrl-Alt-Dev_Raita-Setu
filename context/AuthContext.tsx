@@ -15,7 +15,7 @@ interface AuthProps {
   notifications: any[];
   unreadCount: number;
   login: (email: string, pass: string) => Promise<any>;
-  register: (phone: string, pass: string, roles: string[]) => Promise<any>;
+  register: (phone: string, pass: string, roles: string[], name: string) => Promise<any>;
   switchRole: (newRole: string) => Promise<void>;
   logout: () => Promise<void>;
   setLanguage: (lang: string) => Promise<void>;
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return signInWithEmailAndPassword(auth, emailStr, pass);
   };
   
-  const register = async (phone: string, pass: string, roles: string[]) => {
+  const register = async (phone: string, pass: string, roles: string[], name: string) => {
     const emailStr = phone.includes('@') ? phone : phoneToEmail(phone);
     const result = await createUserWithEmailAndPassword(auth, emailStr, pass);
     
@@ -127,6 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       roles: roles,
       activeRole: roles[0],
       uid: result.user.uid,
+      name: name,
       createdAt: new Date().toISOString(),
       language: 'English'
     };

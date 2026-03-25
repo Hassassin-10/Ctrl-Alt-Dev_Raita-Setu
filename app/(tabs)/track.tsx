@@ -5,7 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useRef, useEffect } from 'react';
-import MapView, { Marker, Circle } from 'react-native-maps';
+import TrackMap from '@/components/TrackMap';
 import { useAuth } from '@/context/AuthContext';
 import * as Location from 'expo-location';
 
@@ -166,7 +166,7 @@ export default function SmartSellAdvisor() {
                 </View>
             ) : bestMarket ? (
                 <View style={styles.recommendationContainer}>
-                    <BlurView intensity={90} tint="light" style={styles.recommendationCard}>
+                    <View style={[styles.recommendationCard, { backgroundColor: '#ffffff' }]}>
                         <View style={styles.recHeader}>
                             <View style={styles.aiBadge}>
                                 <IconSymbol name="sparkles" size={14} color="#fff" />
@@ -195,7 +195,7 @@ export default function SmartSellAdvisor() {
                             <IconSymbol name="paperplane.fill" size={18} color="#1565C0" />
                             <Text style={styles.insightText}>Market Status: <Text style={{color: '#2E7D32', fontWeight: 'bold'}}>Active & High Demand</Text></Text>
                         </View>
-                    </BlurView>
+                    </View>
                 </View>
             ) : null}
 
@@ -205,35 +205,13 @@ export default function SmartSellAdvisor() {
             </View>
             
             <View style={styles.mapContainer}>
-                <MapView 
-                    style={styles.map}
-                    initialRegion={{
-                        latitude: 12.9716,
-                        longitude: 77.5946,
-                        latitudeDelta: 0.8,
-                        longitudeDelta: 0.8,
-                    }}
-                    scrollEnabled={false}
-                >
-                    {markets.map((market, idx) => (
-                        <Marker 
-                            key={market.id || idx} 
-                            coordinate={market.coords}
-                            title={market.market}
-                            description={`₹${market.modal_price}/kg`}
-                        >
-                            <View style={[styles.customMarker, { backgroundColor: market.color }]}>
-                                <Text style={styles.markerPrice}>₹{market.modal_price.toFixed(0)}</Text>
-                            </View>
-                        </Marker>
-                    ))}
-                </MapView>
+                <TrackMap markets={markets} />
             </View>
 
             {/* Market Comparison List */}
             <Text style={[styles.sectionTitle, { marginTop: 25 }]}>Real-time Mandi Comparison</Text>
             {markets.sort((a,b) => b.modal_price - a.modal_price).map((market, idx) => (
-                <View key={market.id || idx} style={styles.marketItem}>
+                <View key={market.id || idx} style={[styles.marketItem, { backgroundColor: '#ffffff' }]}>
                     <View style={[styles.marketColor, { backgroundColor: market.color }]} />
                     <View style={{ flex: 1 }}>
                         <Text style={styles.marketName}>{market.market}</Text>
@@ -270,13 +248,13 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 32, fontWeight: '900', color: '#fff' },
   headerSub: { fontSize: 16, color: 'rgba(255,255,255,0.9)', marginTop: 5 },
   cropSelector: { paddingHorizontal: 20, marginTop: 10 },
-  cropBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  cropBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: 'transparent', marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' },
   cropBtnActive: { backgroundColor: '#fff' },
   cropBtnText: { color: '#fff', fontWeight: 'bold' },
   cropBtnTextActive: { color: '#1B5E20' },
   content: { padding: 20 },
-  recommendationContainer: { marginTop: -40, marginBottom: 25, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 10 },
-  recommendationCard: { padding: 25, borderRadius: 25, overflow: 'hidden', borderWidth: 1, borderColor: '#fff' },
+  recommendationContainer: { marginTop: -40, marginBottom: 25, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 10 },
+  recommendationCard: { padding: 25, borderRadius: 25, borderWidth: 0 },
   recHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   aiBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1B5E20', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   aiBadgeText: { color: '#fff', fontSize: 10, fontWeight: '900', marginLeft: 6 },
@@ -291,11 +269,11 @@ const styles = StyleSheet.create({
   insightText: { fontSize: 14, color: '#555' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#111' },
-  mapContainer: { height: 200, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' },
+  mapContainer: { height: 200, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#eee', backgroundColor: '#fff' },
   map: { flex: 1 },
-  customMarker: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 15, borderWidth: 2, borderColor: '#fff', elevation: 5 },
+  customMarker: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 15, elevation: 5 },
   markerPrice: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  marketItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 18, borderRadius: 20, marginBottom: 12, elevation: 2 },
+  marketItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 20, borderRadius: 22, marginBottom: 15, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, borderWidth: 1, borderColor: '#f0f0f0' },
   marketColor: { width: 6, height: 40, borderRadius: 3, marginRight: 15 },
   marketName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   marketDist: { fontSize: 13, color: '#777', marginTop: 2 },

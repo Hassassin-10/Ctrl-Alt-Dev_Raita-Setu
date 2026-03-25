@@ -12,6 +12,7 @@ import { BlurView } from 'expo-blur';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useBiometric } from '@/hooks/use-biometric';
 import * as SecureStore from 'expo-secure-store';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState('');
@@ -20,9 +21,12 @@ export default function LoginScreen() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBioLoading, setIsBioLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [loginStep, setLoginStep] = useState(0); // 0: Credentials, 1: Role Selection
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
-  const { login, t } = useAuth();
+  const { login, t, profile, switchRole } = useAuth();
   const colorScheme = useColorScheme() ?? 'light';
   const c = Colors[colorScheme];
   const router = useRouter();
@@ -30,7 +34,14 @@ export default function LoginScreen() {
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // 1. Setup pulsing animation
+  // 1. Listen for profile to auto-move to role step after login
+  useEffect(() => {
+    if (profile && profile.roles && profile.roles.length > 0 && !profile.activeRole) {
+       setUserRoles(profile.roles);
+       setLoginStep(1);
+    }
+  }, [profile]);
+
   useEffect(() => {
     if (status === 'available') {
       Animated.loop(
@@ -47,7 +58,7 @@ export default function LoginScreen() {
     if (status === 'available' && isEnabled && !showForm) {
       handleBiometricLogin();
     }
-  }, [status, isEnabled]);
+  }, [status, isEnabled, showForm]);
 
   const handleBiometricLogin = async () => {
     setIsBioLoading(true);
@@ -84,7 +95,6 @@ export default function LoginScreen() {
       return;
     }
     setIsLoggingIn(true);
-    // Simulate OTP Send
     setTimeout(() => {
       setIsLoggingIn(false);
       setIsOtpSent(true);
@@ -98,7 +108,6 @@ export default function LoginScreen() {
       return;
     }
     
-    // If OTP mode is active, check the code
     if (isOtpSent && otp !== '123456') {
       Alert.alert('Invalid OTP', 'The code you entered is incorrect. For demo, use: 123456');
       return;
@@ -106,25 +115,27 @@ export default function LoginScreen() {
 
     setIsLoggingIn(true);
     try {
-      // If they used OTP, we use a fallback PIN to let them in for the demo
-      // If they used the password field, we use that.
       const loginPass = isOtpSent ? (password || '123456') : password;
-      
-      if (!loginPass) {
-          throw new Error("Please enter your PIN or use OTP");
-      }
+      if (!loginPass) throw new Error("Please enter your PIN or use OTP");
 
       await login(phone, loginPass);
-      
-      // Save for Biometrics
       await SecureStore.setItemAsync('user_phone', phone);
       await SecureStore.setItemAsync('user_password', loginPass);
       
     } catch (e: any) {
-      const msg = e.message.includes('auth/invalid-credential') 
-        ? 'Incorrect mobile number or PIN. \n\nTip: If you forgot your PIN, use the "Login with OTP" option.' 
-        : e.message;
-      Alert.alert('Login Failed', msg);
+      Alert.alert('Login Failed', e.message);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleRolePick = async (newRole: string) => {
+    setIsLoggingIn(true);
+    try {
+      await switchRole(newRole);
+      router.replace('/(tabs)');
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
     } finally {
       setIsLoggingIn(false);
     }
@@ -150,7 +161,19 @@ export default function LoginScreen() {
 
         <BlurView intensity={70} tint="light" style={styles.glassCard}>
           {/* Primary View: If Biometrics is enabled & ready, show the full bio screen */}
-          {status === 'available' && isEnabled && !showForm ? (
+          {loginStep === 1 ? (
+            <View style={styles.roleSelectionInLogin}>
+              <Text style={styles.roleTitle}>Select your Persona</Text>
+              <View style={styles.roleGrid}>
+                {userRoles.map(r => (
+                  <TouchableOpacity key={r} style={styles.roleBtnInline} onPress={() => handleRolePick(r)}>
+                    <IconSymbol name={r === 'Farmer' ? 'leaf.fill' : r === 'Labour' ? 'person.2.fill' : 'gearshape.2.fill'} size={32} color={c.primary} />
+                    <Text style={styles.roleBtnText}>{r}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : status === 'available' && isEnabled && !showForm ? (
             <View style={styles.bioSection}>
               <Text style={styles.bioTitle}>Unlock with {biometricLabel}</Text>
               <Text style={styles.bioSubtitle}>Biometric login is enabled for your profile</Text>
@@ -217,14 +240,22 @@ export default function LoginScreen() {
                     onChangeText={setPhone}
                     keyboardType="phone-pad"
                   />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Password (PIN)"
-                    placeholderTextColor="#888"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                  />
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[styles.input, styles.passwordInput]}
+                      placeholder="Password (PIN)"
+                      placeholderTextColor="#888"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                    />
+                    <TouchableOpacity 
+                      style={styles.eyeIcon} 
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#888" />
+                    </TouchableOpacity>
+                  </View>
                   <TouchableOpacity
                     style={[styles.loginBtn, { backgroundColor: c.primary }, (!phone || !password || isLoggingIn) && { opacity: 0.5 }]}
                     onPress={handleLogin}
@@ -290,8 +321,11 @@ const styles = StyleSheet.create({
   header: { marginBottom: 30, alignItems: 'center' },
   title: { fontSize: 28, fontWeight: 'bold', color: '#111' },
   subtitle: { fontSize: 16, color: '#666', marginTop: 8 },
-  glassCard: { padding: 25, borderRadius: 25, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' },
-  input: { backgroundColor: '#f9f9f9', borderRadius: 15, padding: 16, fontSize: 16, marginBottom: 15, borderWidth: 1, borderColor: '#eee' },
+  glassCard: { padding: 25, borderRadius: 25, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', backgroundColor: 'rgba(255,255,255,0.85)' },
+  input: { backgroundColor: '#fff', borderRadius: 15, padding: 16, fontSize: 16, marginBottom: 15, borderWidth: 1, borderColor: '#ccc', color: '#111' },
+  passwordContainer: { position: 'relative', width: '100%' },
+  passwordInput: { paddingRight: 50 },
+  eyeIcon: { position: 'absolute', right: 15, top: 16, zIndex: 1 },
   loginBtn: { padding: 18, borderRadius: 15, alignItems: 'center', marginTop: 5, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5 },
   loginText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   registerLink: { marginTop: 25, alignItems: 'center' },
@@ -313,5 +347,10 @@ const styles = StyleSheet.create({
   orLine: { flex: 1, height: 1, backgroundColor: '#eee' },
   orText: { marginHorizontal: 15, color: '#999', fontWeight: 'bold', fontSize: 12 },
   otpLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 10 },
-  otpLinkText: { fontWeight: 'bold', fontSize: 16 }
+  otpLinkText: { fontWeight: 'bold', fontSize: 16 },
+  roleSelectionInLogin: { alignItems: 'center', paddingVertical: 10 },
+  roleTitle: { fontSize: 20, fontWeight: 'bold', color: '#111', marginBottom: 20 },
+  roleGrid: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', gap: 10 },
+  roleBtnInline: { backgroundColor: '#f0f0f0', padding: 15, borderRadius: 20, alignItems: 'center', width: '30%', borderWidth: 1, borderColor: '#ddd' },
+  roleBtnText: { fontSize: 12, fontWeight: 'bold', color: '#333', marginTop: 8 }
 });

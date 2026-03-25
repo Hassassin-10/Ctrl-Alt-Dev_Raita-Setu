@@ -24,18 +24,18 @@ export const Colors = {
     cardLight: 'rgba(255,255,255,0.9)',
   },
   dark: {
-    text: '#FAFAFA',
-    background: '#121212',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#11181C',
+    background: '#FAFAFA',
+    tint: tintColorLight,
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: tintColorLight,
     primary: '#00C853',
     secondary: '#00B0FF',
     accent: '#FFD600',
     cta: '#FF6D00',
-    surface: 'rgba(30, 30, 30, 0.7)', // Glassmorphism surface
-    cardLight: 'rgba(40,40,40,0.9)',
+    surface: 'rgba(255, 255, 255, 0.95)',
+    cardLight: 'rgba(255,255,255,1)',
   },
 };
 

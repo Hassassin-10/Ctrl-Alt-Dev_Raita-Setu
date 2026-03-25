@@ -7,8 +7,10 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,12 +18,15 @@ export default function RegisterScreen() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['Farmer']);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register } = useAuth();
   const c = Colors[useColorScheme() ?? 'light'];
   const router = useRouter();
 
   const handleSendOTP = () => {
+    if (!name.trim()) return Alert.alert('Error', 'Please enter your full name');
     if (phone.length < 10) return Alert.alert('Error', 'Please enter a valid mobile number');
     if (!password) return Alert.alert('Error', 'Please set a PIN/Password');
     if (password !== confirmPassword) return Alert.alert('Error', 'Passwords must match');
@@ -45,7 +50,7 @@ export default function RegisterScreen() {
     }
     setIsRegistering(true);
     try {
-      await register(phone, password, selectedRoles);
+      await register(phone, password, selectedRoles, name);
     } catch (e: any) {
       Alert.alert('Registration Failed', e.message);
     } finally {
@@ -130,6 +135,14 @@ export default function RegisterScreen() {
 
                 <TextInput
                   style={styles.input} 
+                  placeholder="Full Name" 
+                  placeholderTextColor="#666"
+                  value={name} 
+                  onChangeText={setName} 
+                />
+
+                <TextInput
+                  style={styles.input} 
                   placeholder="Mobile Number" 
                   placeholderTextColor="#666"
                   value={phone} 
@@ -137,23 +150,39 @@ export default function RegisterScreen() {
                   keyboardType="phone-pad" 
                 />
                 
-                <TextInput
-                  style={styles.input} 
-                  placeholder="Create PIN (Password)" 
-                  placeholderTextColor="#666"
-                  value={password} 
-                  onChangeText={setPassword} 
-                  secureTextEntry
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]} 
+                    placeholder="Create PIN (Password)" 
+                    placeholderTextColor="#666"
+                    value={password} 
+                    onChangeText={setPassword} 
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity 
+                    style={styles.eyeIcon} 
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#666" />
+                  </TouchableOpacity>
+                </View>
 
-                <TextInput
-                  style={styles.input} 
-                  placeholder="Confirm PIN" 
-                  placeholderTextColor="#666"
-                  value={confirmPassword} 
-                  onChangeText={setConfirmPassword} 
-                  secureTextEntry
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]} 
+                    placeholder="Confirm PIN" 
+                    placeholderTextColor="#666"
+                    value={confirmPassword} 
+                    onChangeText={setConfirmPassword} 
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity 
+                    style={styles.eyeIcon} 
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={22} color="#666" />
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity style={[styles.loginBtn, { backgroundColor: c.cta }]} onPress={handleSendOTP} disabled={isRegistering}>
                   {isRegistering ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginText}>Send OTP</Text>}
@@ -218,13 +247,18 @@ const styles = StyleSheet.create({
     color: '#333'
   },
   input: { 
-    backgroundColor: 'rgba(255,255,255,0.7)', 
+    backgroundColor: 'rgba(255,255,255,0.9)', 
     borderRadius: 15, 
     padding: 15, 
     fontSize: 16, 
     marginBottom: 15, 
-    color: '#111' 
+    color: '#111',
+    borderWidth: 1,
+    borderColor: '#ccc'
   },
+  passwordContainer: { position: 'relative', width: '100%' },
+  passwordInput: { paddingRight: 50 },
+  eyeIcon: { position: 'absolute', right: 15, top: 16, zIndex: 1 },
   loginBtn: { 
     padding: 15, 
     borderRadius: 15, 

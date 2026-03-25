@@ -168,7 +168,7 @@ function SchemeCard({ scheme, color, textColor, primary, t }: any) {
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: color }]}>
+    <View style={[styles.card, { backgroundColor: '#ffffff' }]}>
         <View style={styles.cardHeaderRow}>
             <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={[styles.cardTitle, { color: textColor }]} numberOfLines={2}>{title}</Text>
@@ -210,15 +210,15 @@ const styles = StyleSheet.create({
   title: { fontSize: 32, fontWeight: '900', letterSpacing: -0.5 },
   subtitle: { fontSize: 15, marginTop: 4, opacity: 0.8, fontWeight: '500' },
   list: { padding: 20 },
-  card: { padding: 20, borderRadius: 24, marginBottom: 20, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
+  card: { padding: 22, borderRadius: 20, marginBottom: 20, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, borderWidth: 0 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  iconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' },
+  iconCircle: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
   cardTitle: { fontSize: 20, fontWeight: '800', lineHeight: 26 },
   cardDesc: { fontSize: 15, color: '#555', marginTop: 12, marginBottom: 20, lineHeight: 22 },
   cardBottom: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   tag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   tagText: { fontWeight: '900', fontSize: 10, letterSpacing: 0.5 },
-  aiButton: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', height: 48, borderRadius: 14, justifyContent: 'center' },
+  aiButton: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent', height: 48, borderRadius: 14, justifyContent: 'center' },
   aiText: { fontWeight: 'bold', fontSize: 14, marginLeft: 8 },
   applyButton: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 48, borderRadius: 14, justifyContent: 'center', elevation: 2 },
   applyText: { color: '#fff', fontWeight: 'bold', fontSize: 14, marginRight: 6 },

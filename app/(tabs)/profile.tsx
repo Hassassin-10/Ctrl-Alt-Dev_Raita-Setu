@@ -17,8 +17,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 export type UserRole = 'Farmer' | 'Labour' | 'MachineryOwner';
@@ -27,7 +29,8 @@ interface UserProfile {
   id: string;
   role: UserRole;
   roles: string[];
-  fullName: string;
+  name: string;
+  profilePicture?: string;
   village: string;
   landSize: string;
   landUnit: 'acres' | 'hectares';
@@ -57,7 +60,8 @@ const defaultProfile: UserProfile = {
   id: '',
   role: 'Farmer',
   roles: [],
-  fullName: '',
+  name: '',
+  profilePicture: '',
   village: '',
   landSize: '',
   landUnit: 'acres',
@@ -123,6 +127,21 @@ export default function ProfileScreen() {
 
   const cancelEdit = () => setIsEditing(false);
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      const b64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setTempProfile(p => ({ ...p, profilePicture: b64 }));
+    }
+  };
+
   const toggleCrop = (crop: string) => {
     setTempProfile((p: UserProfile) => ({
       ...p,
@@ -157,11 +176,24 @@ export default function ProfileScreen() {
       <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
         <View style={[styles.header, { backgroundColor: c.primary }]}>
           <View style={styles.headerRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{(profile.fullName || 'F').charAt(0).toUpperCase()}</Text>
-            </View>
+            <TouchableOpacity 
+               style={styles.avatar} 
+               onPress={isEditing ? pickImage : undefined}
+               disabled={!isEditing}
+            >
+              {displayProfile.profilePicture ? (
+                <Image source={{ uri: displayProfile.profilePicture }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>{(profile.name || 'U').charAt(0).toUpperCase()}</Text>
+              )}
+              {isEditing && (
+                <View style={styles.cameraBadge}>
+                  <IconSymbol name="camera.fill" size={12} color="#fff" />
+                </View>
+              )}
+            </TouchableOpacity>
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <Text style={styles.headerName}>{profile.fullName || 'User'}</Text>
+              <Text style={styles.headerName}>{profile.name || 'User'}</Text>
               <View style={styles.badgeRow}>
                 {profile.isVerified && (
                   <View style={styles.verifiedBadge}>
@@ -241,12 +273,12 @@ export default function ProfileScreen() {
           )}
           {isEditing ? (
             <>
-              <LabeledInput label="Full Name" placeholder="Enter your full name" value={tempProfile.fullName} onChangeText={(v: string) => setTempProfile(p => ({ ...p, fullName: v }))} />
+              <LabeledInput label="Full Name" placeholder="Enter your full name" value={tempProfile.name} onChangeText={(v: string) => setTempProfile(p => ({ ...p, name: v }))} />
               <LabeledInput label="Village / Location" placeholder="Enter village or city" value={tempProfile.village} onChangeText={(v: string) => setTempProfile(p => ({ ...p, village: v }))} />
             </>
           ) : (
             <>
-              <InfoRow label="Full Name" value={profile.fullName || 'Not set'} icon="🧑" />
+              <InfoRow label="Full Name" value={profile.name || 'Not set'} icon="🧑" />
               <InfoRow label="Village" value={profile.village || 'Not set'} icon="🏘️" />
             </>
           )}
@@ -388,7 +420,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { padding: 24, paddingTop: 56, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center' },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  avatarImage: { width: '100%', height: '100%' },
+  cameraBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#00B0FF', padding: 6, borderRadius: 12, borderWidth: 2, borderColor: '#fff' },
   avatarText: { fontSize: 32, fontWeight: 'bold', color: '#fff' },
   headerName: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
   headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 3 },
@@ -398,21 +432,21 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', marginTop: 16 },
   editBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   editBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13, marginLeft: 6 },
-  insightsStrip: { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20, marginTop: -20, borderRadius: 18, elevation: 5, paddingVertical: 16 },
+  insightsStrip: { flexDirection: 'row', backgroundColor: '#ffffff', marginHorizontal: 20, marginTop: -20, borderRadius: 20, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 10, paddingVertical: 18 },
   insightBox: { flex: 1, alignItems: 'center' },
-  insightDivider: { width: 1, backgroundColor: '#eee' },
+  insightDivider: { width: 1, backgroundColor: '#f0f0f0' },
   insightValue: { fontSize: 20, fontWeight: 'bold', marginTop: 4 },
   insightLabel: { fontSize: 12, color: '#888' },
-  card: { margin: 16, marginBottom: 0, borderRadius: 20, padding: 20 },
-  cardTitle: { fontSize: 17, fontWeight: 'bold', color: '#333', marginBottom: 16 },
+  card: { margin: 16, marginBottom: 0, borderRadius: 20, padding: 25, backgroundColor: '#ffffff', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10 },
+  cardTitle: { fontSize: 18, fontWeight: '800', color: '#111', marginBottom: 20 },
   infoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   infoIcon: { fontSize: 22, marginRight: 12 },
   infoLabel: { fontSize: 12, color: '#999' },
   infoValue: { fontSize: 16, color: '#222', fontWeight: '500' },
   readonlyBadge: { backgroundColor: '#e8f5e9', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   readonlyText: { fontSize: 11, color: '#00C853', fontWeight: 'bold' },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 6 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16 },
+  inputLabel: { fontSize: 13, fontWeight: '700', color: '#444', marginBottom: 8 },
+  input: { backgroundColor: '#ffffff', borderRadius: 12, paddingHorizontal: 15, paddingVertical: 14, fontSize: 16, borderWidth: 1, borderColor: '#e0e0e0', color: '#111' },
   roleRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   roleChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: '#f0f0f0', flex: 1, alignItems: 'center' },
   roleChipText: { fontSize: 12, fontWeight: 'bold', color: '#666' },
