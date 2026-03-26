@@ -7,26 +7,25 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>(['Farmer']);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   
   const { register } = useAuth();
   const c = Colors[useColorScheme() ?? 'light'];
   const router = useRouter();
 
   const handleSendOTP = () => {
-    if (!name.trim()) return Alert.alert('Error', 'Please enter your full name');
+    if (!fullName) return Alert.alert('Error', 'Please enter your Full Name');
     if (phone.length < 10) return Alert.alert('Error', 'Please enter a valid mobile number');
     if (!password) return Alert.alert('Error', 'Please set a PIN/Password');
     if (password !== confirmPassword) return Alert.alert('Error', 'Passwords must match');
@@ -50,7 +49,7 @@ export default function RegisterScreen() {
     }
     setIsRegistering(true);
     try {
-      await register(phone, password, selectedRoles, name);
+      await register(phone, password, selectedRoles, fullName);
     } catch (e: any) {
       Alert.alert('Registration Failed', e.message);
     } finally {
@@ -91,10 +90,12 @@ export default function RegisterScreen() {
                   keyboardType="numeric"
                   maxLength={6}
                 />
+                <Text style={{ textAlign: 'center', color: '#666', fontSize: 13, marginBottom: 15 }}>Demo Code: <Text style={{ fontWeight: 'bold', color: c.cta }}>123456</Text></Text>
+                
                 <TouchableOpacity style={[styles.loginBtn, { backgroundColor: c.cta }]} onPress={handleRegister} disabled={isRegistering}>
                   {isRegistering ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginText}>Verify & Create Account</Text>}
                 </TouchableOpacity>
-                <TouchableOpacity style={{ marginTop: 15, alignItems: 'center' }} onPress={() => setIsOtpSent(false)}>
+                <TouchableOpacity style={{ marginTop: 20, alignItems: 'center' }} onPress={() => setIsOtpSent(false)}>
                   <Text style={{ color: '#444' }}>Back to edit details</Text>
                 </TouchableOpacity>
               </View>
@@ -137,8 +138,8 @@ export default function RegisterScreen() {
                   style={styles.input} 
                   placeholder="Full Name" 
                   placeholderTextColor="#666"
-                  value={name} 
-                  onChangeText={setName} 
+                  value={fullName} 
+                  onChangeText={setFullName} 
                 />
 
                 <TextInput
@@ -152,35 +153,29 @@ export default function RegisterScreen() {
                 
                 <View style={styles.passwordContainer}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput]} 
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]} 
                     placeholder="Create PIN (Password)" 
                     placeholderTextColor="#666"
                     value={password} 
                     onChangeText={setPassword} 
-                    secureTextEntry={!showPassword}
+                    secureTextEntry={!isPasswordVisible} 
                   />
-                  <TouchableOpacity 
-                    style={styles.eyeIcon} 
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#666" />
+                  <TouchableOpacity style={styles.eyeBtn} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                    <IconSymbol name={isPasswordVisible ? 'eye.slash' : 'eye'} size={20} color="#666" />
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.passwordContainer}>
+                <View style={[styles.passwordContainer, { marginTop: 15 }]}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput]} 
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]} 
                     placeholder="Confirm PIN" 
                     placeholderTextColor="#666"
                     value={confirmPassword} 
                     onChangeText={setConfirmPassword} 
-                    secureTextEntry={!showConfirmPassword}
+                    secureTextEntry={!isConfirmPasswordVisible} 
                   />
-                  <TouchableOpacity 
-                    style={styles.eyeIcon} 
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={22} color="#666" />
+                  <TouchableOpacity style={styles.eyeBtn} onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}>
+                    <IconSymbol name={isConfirmPasswordVisible ? 'eye.slash' : 'eye'} size={20} color="#666" />
                   </TouchableOpacity>
                 </View>
 
@@ -247,18 +242,13 @@ const styles = StyleSheet.create({
     color: '#333'
   },
   input: { 
-    backgroundColor: 'rgba(255,255,255,0.9)', 
+    backgroundColor: 'rgba(255,255,255,0.7)', 
     borderRadius: 15, 
     padding: 15, 
     fontSize: 16, 
     marginBottom: 15, 
-    color: '#111',
-    borderWidth: 1,
-    borderColor: '#ccc'
+    color: '#111' 
   },
-  passwordContainer: { position: 'relative', width: '100%' },
-  passwordInput: { paddingRight: 50 },
-  eyeIcon: { position: 'absolute', right: 15, top: 16, zIndex: 1 },
   loginBtn: { 
     padding: 15, 
     borderRadius: 15, 
@@ -271,6 +261,16 @@ const styles = StyleSheet.create({
     elevation: 3
   },
   loginText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  passwordContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.7)', 
+    borderRadius: 15, 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.5)',
+    overflow: 'hidden'
+  },
+  eyeBtn: { padding: 15 },
   registerLink: { marginTop: 20, alignItems: 'center' },
   registerText: { color: '#333', fontSize: 14 }
 });

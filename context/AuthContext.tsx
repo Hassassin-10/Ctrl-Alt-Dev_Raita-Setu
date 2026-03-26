@@ -15,7 +15,7 @@ interface AuthProps {
   notifications: any[];
   unreadCount: number;
   login: (email: string, pass: string) => Promise<any>;
-  register: (phone: string, pass: string, roles: string[], name: string) => Promise<any>;
+  register: (phone: string, pass: string, roles: string[], fullName: string) => Promise<any>;
   switchRole: (newRole: string) => Promise<void>;
   logout: () => Promise<void>;
   setLanguage: (lang: string) => Promise<void>;
@@ -32,8 +32,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [storedLanguage, setStoredLanguage] = useState<string>('English');
 
   useEffect(() => {
+    // Load stored language preference immediately
+    const loadStoredLanguage = async () => {
+      try {
+        const savedLang = await AsyncStorage.getItem('@user_language');
+        if (savedLang) {
+          setStoredLanguage(savedLang);
+        }
+      } catch (e) {
+        console.warn("Failed to load language from storage");
+      }
+    };
+    loadStoredLanguage();
+
     let unsubscribeProfile: (() => void) | null = null;
     let unsubscribeNotes: (() => void) | null = null;
 
@@ -48,11 +62,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // 1. Fetch user profile from unified 'users' collection
         unsubscribeProfile = onSnapshot(doc(db, 'users', usr.uid), (snap) => {
           if (snap.exists()) {
-             setProfile(snap.data());
+             const data = snap.data();
+             setProfile(data);
+             if (data.language) setStoredLanguage(data.language);
           } else {
              // Fallback to legacy 'farmers' collection for migration support
              onSnapshot(doc(db, 'farmers', usr.uid), (oldSnap) => {
-                if (oldSnap.exists()) setProfile(oldSnap.data());
+                if (oldSnap.exists()) {
+                  const oldData = oldSnap.data();
+                  setProfile(oldData);
+                  if (oldData.language) setStoredLanguage(oldData.language);
+                }
              });
           }
           setIsLoading(false);
@@ -100,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return signInWithEmailAndPassword(auth, emailStr, pass);
   };
   
-  const register = async (phone: string, pass: string, roles: string[], name: string) => {
+  const register = async (phone: string, pass: string, roles: string[], fullName: string) => {
     const emailStr = phone.includes('@') ? phone : phoneToEmail(phone);
     const result = await createUserWithEmailAndPassword(auth, emailStr, pass);
     
@@ -122,14 +142,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const userData = {
       id: rsId,
+      fullName: fullName,
       phone: phone,
       email: emailStr,
       roles: roles,
       activeRole: roles[0],
       uid: result.user.uid,
-      name: name,
       createdAt: new Date().toISOString(),
-      language: 'English'
+      language: storedLanguage // Use current set language during registration
     };
 
     await setDoc(doc(db, 'users', result.user.uid), userData);
@@ -144,12 +164,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const switchRole = async (newRole: string) => {
     if (!user) return;
-    await setDoc(doc(db, 'users', user.uid), { activeRole: newRole }, { merge: true });
+    await setDoc(doc(db, 'users', user.uid), { 
+      activeRole: newRole,
+      role: newRole // Update both to ensure all logic blocks react correctly
+    }, { merge: true });
   };
 
   const logout = () => signOut(auth);
 
   const setLanguage = async (newLang: string) => {
+    setStoredLanguage(newLang);
     await AsyncStorage.setItem('@user_language', newLang);
     if (user) {
       await setDoc(doc(db, 'users', user.uid), { language: newLang }, { merge: true });
@@ -165,13 +189,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await batch.commit();
   };
 
-  const language = profile?.language || 'English';
+  const language = storedLanguage;
   const t = translations[language as keyof typeof translations] || translations.English;
-  const role = profile?.role || null;
+  const role = profile?.activeRole || profile?.role || null;
 
   return (
     <AuthContext.Provider value={{ 
-      user, profile, role: profile?.activeRole || profile?.role || null, language, t, isLoading, 
+      user, profile, role, language, t, isLoading, 
       notifications, unreadCount,
       login, register, switchRole, logout, setLanguage, clearNotifications 
     }}>

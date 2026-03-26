@@ -11,7 +11,7 @@ const tintColorDark = '#FFD600'; // Sun Yellow
 export const Colors = {
   light: {
     text: '#11181C',
-    background: '#FAFAFA', // Soft White
+    background: '#FFFFFF', // Pure White
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
@@ -20,12 +20,13 @@ export const Colors = {
     secondary: '#00B0FF', // Sky Blue
     accent: '#FFD600', // Sun Yellow
     cta: '#FF6D00', // Orange CTA
-    surface: 'rgba(255, 255, 255, 0.7)', // Glassmorphism surface
-    cardLight: 'rgba(255,255,255,0.9)',
+    surface: 'rgba(255, 255, 255, 0.95)', // Solid glass
+    cardLight: '#FFFFFF',
   },
   dark: {
+    // Forcing dark to be light as requested
     text: '#11181C',
-    background: '#FAFAFA',
+    background: '#FFFFFF', 
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
@@ -35,7 +36,7 @@ export const Colors = {
     accent: '#FFD600',
     cta: '#FF6D00',
     surface: 'rgba(255, 255, 255, 0.95)',
-    cardLight: 'rgba(255,255,255,1)',
+    cardLight: '#FFFFFF',
   },
 };
 

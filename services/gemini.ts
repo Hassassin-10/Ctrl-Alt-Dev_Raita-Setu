@@ -18,7 +18,7 @@ const MODELS_TO_TRY = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash
 export const getFarmAdvice = async (userPrompt: string, userContext?: any) => {
   const lang = userContext?.language || 'English';
   const sysPrompt = getSystemPrompt(lang);
-  
+
   if (!API_KEY) return "API key missing.";
 
   const contextInfo = `Role: ${userContext?.role || 'Farmer'}, City: ${userContext?.city || 'Karnataka'}`;

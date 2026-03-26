@@ -47,7 +47,7 @@ export default function OnboardingScreen() {
       if (user) {
         await setDoc(doc(db, "farmers", user.uid), {
           fullName: name,
-          mobileNumber: user.phoneNumber || user.email,
+          mobileNumber: user.phoneNumber || user.email, 
           village,
           primaryCrop,
           landSize: landSize ? `${landSize} Acres` : 'Not Specified',
@@ -57,7 +57,7 @@ export default function OnboardingScreen() {
           completedOnboarding: true
         }, { merge: true });
       }
-
+      
       // Navigate cleanly to Main Dashboard
       router.replace('/(tabs)');
       Alert.alert("Profile Saved!", "Welcome to Raitha Setu.");
@@ -69,105 +69,105 @@ export default function OnboardingScreen() {
 
   const renderStepIndicator = () => (
     <View style={styles.progressContainer}>
-      <View style={[styles.progressDot, step >= 1 && { backgroundColor: c.cta }]} />
-      <View style={[styles.progressLine, step >= 2 && { backgroundColor: c.cta }]} />
-      <View style={[styles.progressDot, step >= 2 && { backgroundColor: c.cta }]} />
-      <View style={[styles.progressLine, step >= 3 && { backgroundColor: c.cta }]} />
-      <View style={[styles.progressDot, step >= 3 && { backgroundColor: c.cta }]} />
+        <View style={[styles.progressDot, step >= 1 && { backgroundColor: c.cta }]} />
+        <View style={[styles.progressLine, step >= 2 && { backgroundColor: c.cta }]} />
+        <View style={[styles.progressDot, step >= 2 && { backgroundColor: c.cta }]} />
+        <View style={[styles.progressLine, step >= 3 && { backgroundColor: c.cta }]} />
+        <View style={[styles.progressDot, step >= 3 && { backgroundColor: c.cta }]} />
     </View>
   );
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={[c.primary, c.accent]} style={StyleSheet.absoluteFillObject} />
-
+      
       <ScrollView contentContainerStyle={styles.content}>
         <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.glassCard}>
-
+          
           <Text style={styles.title}>Farmer Setup</Text>
           <Text style={styles.subtitle}>Step {step} of 3</Text>
-
+          
           {renderStepIndicator()}
 
           {/* STEP 1: Basic Details */}
           {step === 1 && (
             <View style={styles.formSection}>
-              <Text style={styles.label}>Full Name *</Text>
-              <TextInput style={styles.input} placeholder="e.g. Ramesh Kumar" value={name} onChangeText={setName} />
-
-              <Text style={styles.label}>Village / Location *</Text>
-              <TextInput style={styles.input} placeholder="Auto-detect or type..." value={village} onChangeText={setVillage} />
-
-              <Text style={styles.label}>Primary Crop *</Text>
-              <View style={styles.chipRow}>
-                {crops.map(c => (
-                  <TouchableOpacity key={c} style={[styles.chip, primaryCrop === c && styles.chipActive]} onPress={() => setPrimaryCrop(c)}>
-                    <Text style={[styles.chipText, primaryCrop === c && styles.chipTextActive]}>{c}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+               <Text style={styles.label}>Full Name *</Text>
+               <TextInput style={styles.input} placeholder="e.g. Ramesh Kumar" value={name} onChangeText={setName} />
+               
+               <Text style={styles.label}>Village / Location *</Text>
+               <TextInput style={styles.input} placeholder="Auto-detect or type..." value={village} onChangeText={setVillage} />
+               
+               <Text style={styles.label}>Primary Crop *</Text>
+               <View style={styles.chipRow}>
+                 {crops.map(c => (
+                   <TouchableOpacity key={c} style={[styles.chip, primaryCrop === c && styles.chipActive]} onPress={() => setPrimaryCrop(c)}>
+                      <Text style={[styles.chipText, primaryCrop === c && styles.chipTextActive]}>{c}</Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
             </View>
           )}
 
           {/* STEP 2: Farm Details */}
           {step === 2 && (
             <View style={styles.formSection}>
-              <Text style={styles.label}>Land Size (Optional)</Text>
-              <TextInput style={styles.input} placeholder="e.g. 2.5 (in Acres)" keyboardType="numeric" value={landSize} onChangeText={setLandSize} />
-
-              <Text style={styles.label}>Current Crop Stage</Text>
-              <View style={styles.chipRow}>
-                {stages.map(s => (
-                  <TouchableOpacity key={s} style={[styles.chip, cropStage === s && styles.chipActive]} onPress={() => setCropStage(s)}>
-                    <Text style={[styles.chipText, cropStage === s && styles.chipTextActive]}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+               <Text style={styles.label}>Land Size (Optional)</Text>
+               <TextInput style={styles.input} placeholder="e.g. 2.5 (in Acres)" keyboardType="numeric" value={landSize} onChangeText={setLandSize} />
+               
+               <Text style={styles.label}>Current Crop Stage</Text>
+               <View style={styles.chipRow}>
+                 {stages.map(s => (
+                   <TouchableOpacity key={s} style={[styles.chip, cropStage === s && styles.chipActive]} onPress={() => setCropStage(s)}>
+                      <Text style={[styles.chipText, cropStage === s && styles.chipTextActive]}>{s}</Text>
+                   </TouchableOpacity>
+                 ))}
+               </View>
             </View>
           )}
 
           {/* STEP 3: Operational Needs */}
           {step === 3 && (
             <View style={styles.formSection}>
-              <Text style={styles.label}>What do you need help with right now?</Text>
+               <Text style={styles.label}>What do you need help with right now?</Text>
+               
+               <TouchableOpacity style={[styles.toggleRow, needsLogic.labor && styles.toggleRowActive]} onPress={() => setNeedsLogic({...needsLogic, labor: !needsLogic.labor})}>
+                  <IconSymbol name="person.fill" size={24} color={needsLogic.labor ? '#fff' : '#666'} />
+                  <Text style={[styles.toggleText, needsLogic.labor && { color: '#fff' }]}>Labor Hiring</Text>
+                  {needsLogic.labor && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
+               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.toggleRow, needsLogic.labor && styles.toggleRowActive]} onPress={() => setNeedsLogic({ ...needsLogic, labor: !needsLogic.labor })}>
-                <IconSymbol name="person.fill" size={24} color={needsLogic.labor ? '#fff' : '#666'} />
-                <Text style={[styles.toggleText, needsLogic.labor && { color: '#fff' }]}>Labor Hiring</Text>
-                {needsLogic.labor && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
-              </TouchableOpacity>
+               <TouchableOpacity style={[styles.toggleRow, needsLogic.machinery && styles.toggleRowActive]} onPress={() => setNeedsLogic({...needsLogic, machinery: !needsLogic.machinery})}>
+                  <IconSymbol name="cart.fill" size={24} color={needsLogic.machinery ? '#fff' : '#666'} />
+                  <Text style={[styles.toggleText, needsLogic.machinery && { color: '#fff' }]}>Machinery Rental</Text>
+                  {needsLogic.machinery && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
+               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.toggleRow, needsLogic.machinery && styles.toggleRowActive]} onPress={() => setNeedsLogic({ ...needsLogic, machinery: !needsLogic.machinery })}>
-                <IconSymbol name="cart.fill" size={24} color={needsLogic.machinery ? '#fff' : '#666'} />
-                <Text style={[styles.toggleText, needsLogic.machinery && { color: '#fff' }]}>Machinery Rental</Text>
-                {needsLogic.machinery && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.toggleRow, needsLogic.schemes && styles.toggleRowActive]} onPress={() => setNeedsLogic({ ...needsLogic, schemes: !needsLogic.schemes })}>
-                <IconSymbol name="book.fill" size={24} color={needsLogic.schemes ? '#fff' : '#666'} />
-                <Text style={[styles.toggleText, needsLogic.schemes && { color: '#fff' }]}>Govt Schemes (AI Help)</Text>
-                {needsLogic.schemes && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
-              </TouchableOpacity>
+               <TouchableOpacity style={[styles.toggleRow, needsLogic.schemes && styles.toggleRowActive]} onPress={() => setNeedsLogic({...needsLogic, schemes: !needsLogic.schemes})}>
+                  <IconSymbol name="book.fill" size={24} color={needsLogic.schemes ? '#fff' : '#666'} />
+                  <Text style={[styles.toggleText, needsLogic.schemes && { color: '#fff' }]}>Govt Schemes (AI Help)</Text>
+                  {needsLogic.schemes && <IconSymbol name="checkmark.circle.fill" size={24} color="#fff" />}
+               </TouchableOpacity>
             </View>
           )}
 
           {/* Nav Buttons */}
           <View style={styles.buttonRow}>
-            {step > 1 ? (
-              <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-                <Text style={styles.backText}>Back</Text>
-              </TouchableOpacity>
-            ) : <View style={{ flex: 1 }} />}
-
-            {step < 3 ? (
-              <TouchableOpacity style={[styles.nextBtn, { backgroundColor: c.cta }]} onPress={handleNext}>
-                <Text style={styles.nextText}>Continue</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#00C853' }]} onPress={handleSaveProfile}>
-                <Text style={styles.nextText}>Save & Enter App</Text>
-              </TouchableOpacity>
-            )}
+             {step > 1 ? (
+                <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+                   <Text style={styles.backText}>Back</Text>
+                </TouchableOpacity>
+             ) : <View style={{ flex: 1 }} />}
+             
+             {step < 3 ? (
+                <TouchableOpacity style={[styles.nextBtn, { backgroundColor: c.cta }]} onPress={handleNext}>
+                   <Text style={styles.nextText}>Continue</Text>
+                </TouchableOpacity>
+             ) : (
+                <TouchableOpacity style={[styles.saveBtn, { backgroundColor: '#00C853' }]} onPress={handleSaveProfile}>
+                   <Text style={styles.nextText}>Save & Enter App</Text>
+                </TouchableOpacity>
+             )}
           </View>
 
         </BlurView>
