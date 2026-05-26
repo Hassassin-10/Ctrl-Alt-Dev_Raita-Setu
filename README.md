@@ -1,6 +1,6 @@
 # Raitha Setu (AgriPulse) 🌾
 
-**Raitha Setu** is a comprehensive, mobile-first agricultural ecosystem designed to empower farmers with cutting-edge AI technology, real-time market data, and a collaborative community. Built with React Native and powered by Google Gemini AI, it serves as a digital companion for modern farming.
+**Raitha Setu** is a comprehensive, mobile-first agricultural ecosystem designed to empower farmers with cutting-edge AI technology, real-time market data, and a collaborative community. Built with React Native and powered by Google Gemini AI, it serves as a digital companion for modern farming.. 
 
 ---
 
